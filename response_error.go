@@ -9,5 +9,5 @@ type ResponseError struct {
 
 // 这个判断不代表业务成功！
 func (err ResponseError) Success() bool {
-	return err.Code == GATEWAY_SUCCESS && err.SubCode == ""
+	return err.Code == GatewaySuccess && err.SubCode == ""
 }

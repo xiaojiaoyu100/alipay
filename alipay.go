@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	ALIPAY_GATEWAY = "https://openapi.alipay.com/gateway.do"
+	AlipayGateway = "https://openapi.alipay.com/gateway.do"
 )
 
 var client = &http.Client{
@@ -37,41 +37,18 @@ var client = &http.Client{
 }
 
 type CommonParam struct {
-	// 支付宝分配给开发者的应用ID
-	AppId string `url:"app_id,omitempty"`
-
-	// 接口名称
-	Method string `url:"method,omitempty"`
-
-	// 仅支持JSON
-	Format string `url:"format,omitempty"`
-
-	// 同步返回地址
-	ReturnUrl string `url:"return_url,omitempty"`
-
-	// 请求使用的编码格式，如utf-8,gbk,gb2312等
-	Charset string `url:"charset,omitempty"`
-
-	// 商户生成签名字符串所使用的签名算法类型，目前支持RSA2和RSA，推荐使用RSA2
-	SignType string `url:"sign_type,omitempty"`
-
-	// 商户请求参数的签名串
-	Sign string `url:"sign,omitempty"`
-
-	// 发送请求的时间，格式"yyyy-MM-dd HH:mm:ss"
-	Timestamp string `url:"timestamp,omitempty"`
-
-	// 调用的接口版本，固定为：1.0
-	Version string `url:"version,omitempty"`
-
-	// 支付宝服务器主动通知商户服务器里指定的页面http/https路径。
-	NotifyUrl string `url:"notify_url,omitempty"`
-
-	// 详见应用授权概述
-	AppAuthToken string `url:"app_auth_token,omitempty"`
-
-	// 请求参数的集合
-	BizContent string `url:"biz_content,omitempty"`
+	AppId        string `url:"app_id,omitempty"`         // 支付宝分配给开发者的应用ID
+	Method       string `url:"method,omitempty"`         // 接口名称
+	Format       string `url:"format,omitempty"`         // 仅支持JSON
+	ReturnUrl    string `url:"return_url,omitempty"`     // 同步返回地址
+	Charset      string `url:"charset,omitempty"`        // 请求使用的编码格式，如utf-8,gbk,gb2312等
+	SignType     string `url:"sign_type,omitempty"`      // 商户生成签名字符串所使用的签名算法类型，目前支持RSA2和RSA，推荐使用RSA2
+	Sign         string `url:"sign,omitempty"`           // 商户请求参数的签名串
+	Timestamp    string `url:"timestamp,omitempty"`      // 发送请求的时间，格式"yyyy-MM-dd HH:mm:ss"
+	Version      string `url:"version,omitempty"`        // 调用的接口版本，固定为：1.0
+	NotifyUrl    string `url:"notify_url,omitempty"`     // 支付宝服务器主动通知商户服务器里指定的页面http/https路径。
+	AppAuthToken string `url:"app_auth_token,omitempty"` // 详见应用授权概述
+	BizContent   string `url:"biz_content,omitempty"`    // 请求参数的集合
 }
 
 var defaultCommonParam = CommonParam{
@@ -173,7 +150,7 @@ func (alipay *Alipay) MakeParam(content interface{}, method string, fillList ...
 }
 
 func (alipay *Alipay) OnRequest(content interface{}, method string, fillList ...Fill) (int, []byte, error) {
-	request, err := http.NewRequest(http.MethodGet, ALIPAY_GATEWAY, nil)
+	request, err := http.NewRequest(http.MethodGet, AlipayGateway, nil)
 	if err != nil {
 		log.Println("支付宝生成请求失败: ", err)
 		return 0, nil, err
