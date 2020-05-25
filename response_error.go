@@ -1,5 +1,6 @@
 package alipay
 
+// ResponseError ...
 type ResponseError struct {
 	Code    string `json:"code"`
 	Msg     string `json:"msg"`
@@ -7,7 +8,7 @@ type ResponseError struct {
 	SubMsg  string `json:"sub_msg"`
 }
 
-// 这个判断不代表业务成功！
+// Success 这个判断不代表业务成功！
 func (err ResponseError) Success() bool {
 	return err.Code == GatewaySuccess && err.SubCode == ""
 }

@@ -1,7 +1,7 @@
+// Package alipay https://docs.open.alipay.com/common/105806
 package alipay
 
-// https://docs.open.alipay.com/common/105806
-
+// Success ...
 const (
 	GatewaySuccess = "10000"
 )

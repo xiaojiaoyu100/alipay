@@ -1,3 +1,4 @@
+// Package alipay https://docs.open.alipay.com/api_15/alipay.data.dataservice.bill.downloadurl.query
 package alipay
 
 import (
@@ -7,25 +8,24 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"strings"
 )
 
-// https://docs.open.alipay.com/api_15/alipay.data.dataservice.bill.downloadurl.query
-
 const (
-	// 指商户基于支付宝交易收单的业务账
+	// BillTypeTrade 指商户基于支付宝交易收单的业务账
 	BillTypeTrade = "trade"
 
-	// 指基于商户支付宝余额收入及支出等资金变动的帐务账单
+	// BillTypeSigncustomer 指基于商户支付宝余额收入及支出等资金变动的帐务账单
 	BillTypeSigncustomer = "signcustomer"
 )
 
+// CsvBusinessType ...
 const (
 	CsvBusinessTypeTrade  = "交易"
 	CsvBusinessTypeRefund = "退款"
 )
 
+// BillTradeEntry ...
 type BillTradeEntry struct {
 	TradeNo             string // 支付宝交易号
 	OutTradeNo          string // 商户订单号
@@ -54,21 +54,25 @@ type BillTradeEntry struct {
 	Body                string // 备注
 }
 
-type BillDownloadUrlQueryParam struct {
+// BillDownloadURLQueryParam ...
+type BillDownloadURLQueryParam struct {
 	BillType string `json:"bill_type,omitempty"` // 账单类型，商户通过接口或商户经开放平台授权后其所属服务商通过接口可以获取以下账单类型：trade、signcustomer；trade指商户基于支付宝交易收单的业务账单；signcustomer是指基于商户支付宝余额收入及支出等资金变动的帐务账单；
 	BillDate string `json:"bill_date,omitempty"` // 账单时间：日账单格式为yyyy-MM-dd，月账单格式为yyyy-MM。
 }
 
-type BillDownloadUrlQueryResponse struct {
+// BillDownloadURLQueryResponse ...
+type BillDownloadURLQueryResponse struct {
 	ResponseError
-	BillDownloadUrl string `json:"bill_download_url"` // 账单下载地址链接，获取连接后30秒后未下载，链接地址失效。
+	BillDownloadURL string `json:"bill_download_url"` // 账单下载地址链接，获取连接后30秒后未下载，链接地址失效。
 }
 
-func (resp *BillDownloadUrlQueryResponse) IsBillNotExist() bool {
+// IsBillNotExist ...
+func (resp *BillDownloadURLQueryResponse) IsBillNotExist() bool {
 	return resp.SubCode == "isp.bill_not_exist"
 }
 
-func (alipay *Alipay) BillDownloadurlQuery(param *BillDownloadUrlQueryParam) (int, *BillDownloadUrlQueryResponse, error) {
+// BillDownloadurlQuery ...
+func (alipay *Alipay) BillDownloadurlQuery(param *BillDownloadURLQueryParam) (int, *BillDownloadURLQueryResponse, error) {
 	statusCode, body, err := alipay.OnRequest(
 		param,
 		MethodAlipayDataDataserviceBillDownloadurlQuery,
@@ -76,15 +80,16 @@ func (alipay *Alipay) BillDownloadurlQuery(param *BillDownloadUrlQueryParam) (in
 	if err != nil {
 		return 0, nil, err
 	}
-	billDownloadUrlQueryResponse := new(BillDownloadUrlQueryResponse)
-	if err := json.Unmarshal(body, billDownloadUrlQueryResponse); err != nil {
+	billDownloadURLQueryResponse := new(BillDownloadURLQueryResponse)
+	if err := json.Unmarshal(body, billDownloadURLQueryResponse); err != nil {
 		return 0, nil, err
 	}
-	return statusCode, billDownloadUrlQueryResponse, nil
+	return statusCode, billDownloadURLQueryResponse, nil
 }
 
-func (alipay *Alipay) DownloadBill(billUrl string) ([]byte, error) {
-	resp, err := alipay.HttpClient().Get(billUrl)
+// DownloadBill ...
+func (alipay *Alipay) DownloadBill(billURL string) ([]byte, error) {
+	resp, err := alipay.HTTPClient().Get(billURL)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +101,7 @@ func (alipay *Alipay) DownloadBill(billUrl string) ([]byte, error) {
 	return body, nil
 }
 
+// BillTradeList ...
 func (alipay *Alipay) BillTradeList(bill []byte) ([]*BillTradeEntry, error) {
 	billTradeEntryList := make([]*BillTradeEntry, 0)
 
@@ -136,9 +142,6 @@ func (alipay *Alipay) BillTradeList(bill []byte) ([]*BillTradeEntry, error) {
 			contentBytesInUtd8, _ := GbkToUtf8(buf.Bytes())
 
 			content := string(contentBytesInUtd8)
-
-			log.Println(content)
-
 			lines := strings.Split(content, "\n")
 			var (
 				validContent string

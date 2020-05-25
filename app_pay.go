@@ -1,12 +1,13 @@
-// https://docs.open.alipay.com/204/105465/
+// Package alipay https://docs.open.alipay.com/204/105465/
 package alipay
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"net/url"
 )
 
+// AppPayParamExtUserInfo ...
 type AppPayParamExtUserInfo struct {
 	Name          string `json:"name"`            // 姓名
 	Mobile        string `json:"mobile"`          // 手机号
@@ -17,14 +18,16 @@ type AppPayParamExtUserInfo struct {
 	NeedCheckInfo string `json:"need_check_info"` // 是否强制校验身份信息 T:强制校验，F：不强制
 }
 
+// AppPayParamExtendParams ...
 type AppPayParamExtendParams struct {
-	SysServiceProviderId string `json:"sys_service_provider_id,omitempty"` // 系统商编号，该参数作为系统商返佣数据提取的依据，请填写系统商签约协议的PID
+	SysServiceProviderID string `json:"sys_service_provider_id,omitempty"` // 系统商编号，该参数作为系统商返佣数据提取的依据，请填写系统商签约协议的PID
 	NeedBuyerRealnamed   string `json:"needBuyerRealnamed,omitempty"`      //是否发起实名校验 T：发起 F：不发起
 	TransMemo            string `json:"TRANS_MEMO,omitempty"`              // 账务备注 注：该字段显示在离线账单的账务备注中
 	HbFqNum              string `json:"hb_fq_num,omitempty"`               // 花呗分期数（目前仅支持3、6、12） 注：使用该参数需要仔细阅读“花呗分期接入文档”
 	HbFqSellerPercent    string `json:"hb_fq_seller_percent,omitempty"`    // 卖家承担收费比例，商家承担手续费传入100，用户承担手续费传入0，仅支持传入100、0两种，其他比例暂不支持  注：使用该参数需要仔细阅读“花呗分期接入文档”
 }
 
+// AppPayParam ...
 type AppPayParam struct {
 	Body               string                 `json:"body,omitempty"`                 // 对一笔交易的具体描述信息。如果是多种商品，请将商品描述字符串累加传给body。
 	Subject            string                 `json:"subject"`                        // 商品的标题/交易标题/订单标题/订单关键字等。
@@ -38,50 +41,41 @@ type AppPayParam struct {
 	ExtendParams       string                 `json:"extend_params,omitempty"`        // 业务扩展参数，详见下面的“业务扩展参数说明”
 	EnablePayChannels  string                 `json:"enable_pay_channels,omitempty"`  // 可用渠道，用户只能在指定渠道范围内支付 当有多个渠道时用“,”分隔 注：与disable_pay_channels互斥
 	DisablePayChannels string                 `json:"disable_pay_channels,omitempty"` // 禁用渠道，用户不可用指定渠道支付 当有多个渠道时用“,”分隔  注：与enable_pay_channels互斥
-	StoreId            string                 `json:"store_id,omitempty"`             // 商户门店编号。该参数用于请求参数中以区分各门店，非必传项。
+	StoreID            string                 `json:"store_id,omitempty"`             // 商户门店编号。该参数用于请求参数中以区分各门店，非必传项。
 	ExtUserInfo        AppPayParamExtUserInfo `json:"ext_user_info,omitempty"`        // 外部指定买家，详见外部用户ExtUserInfo参数说明
 }
 
-func (alipay *Alipay) AppPay(param *AppPayParam, notifyUrl string) (string, error) {
+// AppPay ...
+func (alipay *Alipay) AppPay(param *AppPayParam, notifyURL string) (string, error) {
 	param.ProductCode = "QUICK_MSECURITY_PAY"
 
 	if len(param.OutTradeNo) == 0 {
-		text := "商户订单号不能为空"
-		log.Println(text)
-		return "", errors.New(text)
+		return "", errors.New("商户订单号不能为空")
 	}
 
 	if len(param.TotalAmount) == 0 {
-		text := "订单金额不能为空"
-		log.Println(text)
-		return "", errors.New(text)
+		return "", errors.New("订单金额不能为空")
 	}
 
 	if len(param.Subject) == 0 {
-		text := "订单标题不能为空"
-		log.Println(text)
-		return "", errors.New(text)
+		return "", errors.New("订单标题不能为空")
 	}
 
 	if len(param.TimeoutExpress) == 0 {
-		text := "订单允许的最晚付款时间不能为空"
-		log.Println(text)
-		return "", errors.New(text)
+		return "", errors.New("订单允许的最晚付款时间不能为空")
 	}
 
 	paramStr, err := alipay.MakeParam(
 		param,
 		MethodAlipayTradeAppPay,
-		WithNotifyUrl(notifyUrl),
+		WithNotifyURL(notifyURL),
 	)
 	if err != nil {
-		log.Println("支付宝app支付构造参数失败: ", err)
-		return "", err
+		return "", fmt.Errorf("支付宝app支付构造参数失败: %w", err)
 	}
 	url, err := url.Parse(AlipayGateway)
 	if err != nil {
-		log.Println("解析支付宝网关失败: ", err)
-		return "", err
+		return "", fmt.Errorf("解析支付宝网关失败: %w", err)
 	}
 	url.RawQuery = paramStr
 	return url.String(), nil

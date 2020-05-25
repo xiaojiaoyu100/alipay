@@ -1,5 +1,6 @@
 package alipay
 
+// MethodAlipay ...
 const (
 	MethodAlipayTradeFastpayRefundQuery             = "alipay.trade.fastpay.refund.query"
 	MethodAlipayTradeOrderSettle                    = "alipay.trade.order.settle"
