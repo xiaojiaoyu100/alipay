@@ -1,6 +1,7 @@
 package alipay
 
 import (
+	"errors"
 	"log"
 	"net/url"
 )
@@ -41,19 +42,27 @@ func (alipay *Alipay) WapPay(param *WapPayParam, notifyUrl string, returnUrl str
 	param.ProductCode = "QUICK_WAP_WAY"
 
 	if len(param.OutTradeNo) == 0 {
-		panic("商户订单号不能为空")
+		text := "商户订单号不能为空"
+		log.Println(text)
+		return "", errors.New(text)
 	}
 
 	if len(param.TotalAmount) == 0 {
-		panic("订单金额不能为空")
+		text := "订单金额不能为空"
+		log.Println(text)
+		return "", errors.New(text)
 	}
 
 	if len(param.Subject) == 0 {
-		panic("订单标题不能为空")
+		text := "订单标题不能为空"
+		log.Println(text)
+		return "", errors.New(text)
 	}
 
 	if len(param.TimeoutExpress) == 0 {
-		panic("订单允许的最晚付款时间不能为空")
+		text := "订单允许的最晚付款时间不能为空"
+		log.Println(text)
+		return "", errors.New(text)
 	}
 
 	paramStr, err := alipay.MakeParam(
