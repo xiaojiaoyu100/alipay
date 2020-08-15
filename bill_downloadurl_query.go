@@ -54,6 +54,22 @@ type BillTradeEntry struct {
 	Body                string // 备注
 }
 
+// BillSigncustomerEntry ...
+type BillSigncustomerEntry struct {
+	FundFlowID     string // 账务流水号
+	TransactionID  string // 业务流水号
+	BusinessID     string // 商户订单号
+	ProductName    string // 商品名称
+	TimeStart      string // 发生时间
+	OtherAccount   string // 对方账号
+	IncomeAmount   string // 收入金额（+元）
+	ExpensesAmount string // 支出金额（-元）
+	Balance        string // 账户余额（元）
+	TradingChannel string // 交易渠道
+	BusinessType   string // 业务类型
+	Remark         string // 备注
+}
+
 // BillDownloadURLQueryParam ...
 type BillDownloadURLQueryParam struct {
 	BillType string `json:"bill_type,omitempty"` // 账单类型，商户通过接口或商户经开放平台授权后其所属服务商通过接口可以获取以下账单类型：trade、signcustomer；trade指商户基于支付宝交易收单的业务账单；signcustomer是指基于商户支付宝余额收入及支出等资金变动的帐务账单；
@@ -117,17 +133,7 @@ func (alipay *Alipay) BillTradeList(bill []byte) ([]*BillTradeEntry, error) {
 		fileNameInUtf8 := string(fileNameBytesInUtf8)
 		if strings.HasSuffix(fileNameInUtf8, "业务明细.csv") {
 
-			fileReadCloser, err := file.Open()
-			if err != nil {
-				return nil, err
-			}
-			defer fileReadCloser.Close()
-
 			var buf bytes.Buffer
-
-			if _, err := io.Copy(&buf, fileReadCloser); err != nil {
-				return nil, err
-			}
 
 			fileReaderCloser, err := file.Open()
 			if err != nil {
@@ -205,4 +211,87 @@ func (alipay *Alipay) BillTradeList(bill []byte) ([]*BillTradeEntry, error) {
 		}
 	}
 	return billTradeEntryList, nil
+}
+
+// BillSigncustomerList ...
+func (alipay *Alipay) BillSigncustomerList(bill []byte) ([]*BillSigncustomerEntry, error) {
+	billSigncustomerEntryList := make([]*BillSigncustomerEntry, 0)
+
+	byteReader := bytes.NewReader(bill)
+
+	zipReader, err := zip.NewReader(byteReader, int64(byteReader.Len()))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range zipReader.File {
+		fileNameBytesInUtf8, _ := GbkToUtf8([]byte(file.Name))
+		fileNameInUtf8 := string(fileNameBytesInUtf8)
+		if strings.HasSuffix(fileNameInUtf8, "账务明细.csv") {
+
+			var buf bytes.Buffer
+
+			fileReaderCloser, err := file.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer fileReaderCloser.Close()
+
+			if _, err := io.Copy(&buf, fileReaderCloser); err != nil {
+				return nil, err
+			}
+
+			contentBytesInUtd8, _ := GbkToUtf8(buf.Bytes())
+
+			content := string(contentBytesInUtd8)
+			lines := strings.Split(content, "\n")
+			var (
+				validContent string
+			)
+			for _, line := range lines {
+				if strings.HasPrefix(line, "#") {
+					continue
+				}
+				if len(validContent) > 0 {
+					validContent += "\n"
+				}
+				validContent += line
+			}
+
+			csvReader := csv.NewReader(strings.NewReader(validContent))
+			records, err := csvReader.ReadAll()
+
+			for _, record := range records {
+				for idx, field := range record {
+					record[idx] = strings.TrimSuffix(field, "\t")
+				}
+			}
+
+			if len(records) > 0 {
+				for _, record := range records[1:] {
+					if len(record) != 12 {
+						continue
+					}
+
+					entry := new(BillSigncustomerEntry)
+					billSigncustomerEntryList = append(billSigncustomerEntryList, entry)
+
+					entry.FundFlowID = record[0]
+					entry.TransactionID = record[1]
+					entry.BusinessID = record[2]
+					entry.ProductName = record[3]
+					entry.TimeStart = record[4]
+					entry.OtherAccount = record[5]
+					entry.IncomeAmount = record[6]
+					entry.ExpensesAmount = record[7]
+					entry.Balance = record[8]
+					entry.TradingChannel = record[9]
+					entry.BusinessType = record[10]
+					entry.Remark = record[11]
+				}
+			}
+			break
+		}
+	}
+	return billSigncustomerEntryList, nil
 }
