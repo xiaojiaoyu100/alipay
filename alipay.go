@@ -275,7 +275,7 @@ func NormValues(v url.Values) string {
 }
 
 // New ...
-func New(appID, publicKeyPath, privateKeyPath string) (*Alipay, error) {
+func New(appID string, pubBytes, privateBytes []byte) (*Alipay, error) {
 	alipay := Alipay{
 		appID:  appID,
 		client: client,
@@ -283,12 +283,12 @@ func New(appID, publicKeyPath, privateKeyPath string) (*Alipay, error) {
 
 	var err error
 
-	alipay.PublicKey, err = NewPublicKey(publicKeyPath)
+	alipay.PublicKey, err = NewPublicKey(pubBytes)
 	if err != nil {
 		return nil, fmt.Errorf("支付宝公钥构建失败: %w", err)
 	}
 
-	alipay.PrivateKey, err = NewPrivateKey(privateKeyPath)
+	alipay.PrivateKey, err = NewPrivateKey(privateBytes)
 	if err != nil {
 		return nil, fmt.Errorf("商户私钥构建失败: %w", err)
 	}
@@ -297,11 +297,7 @@ func New(appID, publicKeyPath, privateKeyPath string) (*Alipay, error) {
 }
 
 // NewPublicKey publicKey参照ParsePKIXPublicKey
-func NewPublicKey(path string) (pub *rsa.PublicKey, err error) {
-	pubBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
+func NewPublicKey(pubBytes []byte) (pub *rsa.PublicKey, err error) {
 	pubBlock, _ := pem.Decode(pubBytes)
 	pubInterface, err := x509.ParsePKIXPublicKey(pubBlock.Bytes)
 	if err != nil {
@@ -315,11 +311,7 @@ func NewPublicKey(path string) (pub *rsa.PublicKey, err error) {
 }
 
 // NewPrivateKey privateKey格式参照ParsePKCS1PrivateKey
-func NewPrivateKey(path string) (priKey *rsa.PrivateKey, err error) {
-	privateBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
+func NewPrivateKey(privateBytes []byte) (priKey *rsa.PrivateKey, err error) {
 	priBlock, _ := pem.Decode(privateBytes)
 	privateKey, err := x509.ParsePKCS1PrivateKey(priBlock.Bytes)
 	if err != nil {
