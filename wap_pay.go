@@ -18,6 +18,11 @@ type WapPayParamExtUserInfo struct {
 	NeedCheckInfo string `json:"need_check_info"` // 是否强制校验身份信息  T:强制校验，F：不强制
 }
 
+type WapPayParamExtendParams struct {
+	HbFqNum              string `json:"hb_fq_num,omitempty"`               // 花呗分期数（目前仅支持3、6、12）注：使用该参数需要仔细阅读“花呗分期接入文档”
+	HbFqSellerPercent    string `json:"hb_fq_seller_percent,omitempty"`    // 卖家承担收费比例，商家承担手续费传入100，用户承担手续费传入0，仅支持传入100、0两种，其他比例暂不支持注：使用该参数需要仔细阅读“花呗分期接入文档”
+}
+
 // WapPayParam ...
 type WapPayParam struct {
 	Body               string                  `json:"body,omitempty"`                 // 对一笔交易的具体描述信息。如果是多种商品，请将商品描述字符串累加传给body。
@@ -31,7 +36,7 @@ type WapPayParam struct {
 	GoodsType          string                  `json:"goods_type,omitempty"`           // 商品主类型：0—虚拟类商品，1—实物类商品注：虚拟类商品不支持使用花呗渠道
 	PassbackParams     string                  `json:"passback_params,omitempty"`      // 公用回传参数，如果请求时传递了该参数，则返回给商户时会回传该参数。支付宝会在异步通知时将该参数原样返回。本参数必须进行UrlEncode之后才可以发送给支付宝
 	PromoParams        string                  `json:"promo_params,omitempty"`         // 优惠参数注：仅与支付宝协商后可用
-	ExtendParams       string                  `json:"extend_params,omitempty"`        // 业务扩展参数，详见下面的“业务扩展参数说明”
+	ExtendParams       *WapPayParamExtendParams `json:"extend_params,omitempty"`        // 业务扩展参数，详见下面的“业务扩展参数说明”
 	EnablePayChannels  string                  `json:"enable_pay_channels,omitempty"`  // 可用渠道，用户只能在指定渠道范围内支付当有多个渠道时用“,”分隔注：与disable_pay_channels互斥
 	DisablePayChannels string                  `json:"disable_pay_channels,omitempty"` // 禁用渠道，用户不可用指定渠道支付当有多个渠道时用“,”分隔注：与enable_pay_channels互斥
 	StoreID            string                  `json:"store_id,omitempty"`             // 商户门店编号。该参数用于请求参数中以区分各门店，非必传项。
